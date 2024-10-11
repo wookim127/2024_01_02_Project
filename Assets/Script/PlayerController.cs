@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -8,6 +9,7 @@ public class PlayerController : MonoBehaviour
     [Header("Player Movement")]
     public float moveSpeed = 5.0f;
     public float jumpForce = 5.0f;
+    public float rotationSpeed = 10.0f;
 
     [Header("Camera Settings")]
     public Camera firstPersonCamera;
@@ -26,7 +28,7 @@ public class PlayerController : MonoBehaviour
     private float targetVericalRotation = 0;
     private float verticalRotationSpeed = 240f;
 
-    private bool isFirstPerson = true;
+    public bool isFirstPerson = true;
     private bool isGrounded;
     private Rigidbody rb;
 
@@ -67,6 +69,8 @@ public class PlayerController : MonoBehaviour
         float moveHorizontal = Input.GetAxis("Horizontal");
         float moveVertical = Input.GetAxis("Vertical");
 
+        Vector3 movement;
+
         if (!isFirstPerson)
         {
             Vector3 cameraForward = thirdPersonCamera.transform.forward;
@@ -77,13 +81,26 @@ public class PlayerController : MonoBehaviour
             cameraRight.y = 0.0f;
             cameraRight.Normalize();
 
-            Vector3 movement = cameraRight * moveHorizontal + cameraForward * moveVertical;
-            rb.MovePosition(rb.position + movement * moveSpeed * Time.deltaTime);
+            movement = cameraRight * moveHorizontal + cameraForward * moveVertical;
         }
         else
         {
 
-            Vector3 movement = transform.right * moveHorizontal + transform.forward * moveVertical;
+            movement = transform.right * moveHorizontal + transform.forward * moveVertical;
+        }
+
+        if (movement.magnitude > 0.1f)
+        {
+            Quaternion toRotation = Quaternion.LookRotation(movement, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, rotationSpeed * Time.deltaTime);
+        }
+
+        rb.MovePosition(rb.position + movement * moveSpeed * Time.deltaTime);
+
+
+
+
+        {
             rb.MovePosition(rb.position + movement * moveSpeed * Time.deltaTime);
         }
 
@@ -110,9 +127,15 @@ public class PlayerController : MonoBehaviour
             targetVericalRotation = Mathf.Clamp(targetVericalRotation, yMinLimit, yMaxLimit);
             phi = Mathf.MoveTowards(phi, targetVericalRotation, verticalRotationSpeed * Time.deltaTime);
 
-            transform.rotation = Quaternion.Euler(0.0f, theta, 0.0f);
+
 
             if (isFirstPerson)
+            {
+                firstPersonCamera.transform.localRotation = Quaternion.Euler(phi, 0.0f, 0.0f);
+
+                transform.rotation = Quaternion.Euler(0.0f, theta, 0.0f);
+            }
+            else
             {
 
                 float x = radius * Mathf.Sin(Mathf.Deg2Rad * phi) * Mathf.Cos(Mathf.Deg2Rad * theta);
@@ -128,7 +151,7 @@ public class PlayerController : MonoBehaviour
 
         void HandleCameraToggle()
         {
-            if(Input.GetKeyDown(KeyCode.C))
+            if (Input.GetKeyDown(KeyCode.C))
             {
                 isFirstPerson = !isFirstPerson;
                 SetActiveCamera();
@@ -136,8 +159,8 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-            firstPersonCamera.transform.localRotation = Quaternion.Euler(phi, 0.0f, 0.0f);
+        firstPersonCamera.transform.localRotation = Quaternion.Euler(phi, 0.0f, 0.0f);
 
 
-        }
     }
+}
