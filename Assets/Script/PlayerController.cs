@@ -26,7 +26,7 @@ public class PlayerController : MonoBehaviour
 
     private const float Y_ANGLE_MIN = 0.0f;
     private const float Y_ANGLE_MAX = 50.0f;
-    public float mouseSenesitivity = 200f;      // 마우스 감도
+    private float mouseSenesitivity = 200f;      // 마우스 감도
 
 
     public float radius = 5.0f;                     // 3인칭 카메라와 플러이어 간의 거리
